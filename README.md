@@ -1,70 +1,51 @@
-# Getting Started with Create React App
+Trước khi triển khai ứng dụng, bạn cần cấu hình MockAPI cho dự án của mình:
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Đăng nhập vào tài khoản MockAPI của bạn
+Tạo một resource mới có tên là todos với các trường sau:
 
-## Available Scripts
+    id (string, tự động tạo)
+    title (string)
+    completed (boolean)
+    order (number)
+    createdAt (datetime)
+Sau khi tạo xong, lấy URL endpoint của API và cập nhật lại trong file apiService.js:
+    const API_URL = 'https://your-mockapi-endpoint.mockapi.io/api/v1';
+ Chạy ứng dụng
+    npm start
 
-In the project directory, you can run:
+1. Mô hình PubSub
+Ứng dụng sử dụng mô hình PubSub để quản lý trạng thái. Các thành phần chính:
 
-### `npm start`
+pubsub.js: Triển khai mô hình PubSub với các phương thức subscribe và publish.
+Các sự kiện được định nghĩa: TODOS_LOADED, TODO_ADDED, TODO_UPDATED, TODO_DELETED, TODOS_REORDERED, API_ERROR.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+2. Giao tiếp với API
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+apiService.js: Xử lý các tác vụ CRUD với API sử dụng axios.
+Mỗi khi có thay đổi, service sẽ publish sự kiện tương ứng để các component cập nhật.
 
-### `npm test`
+3. Giao diện người dùng
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+TodoList: Component chính, quản lý trạng thái và hiển thị danh sách.
+TodoItem: Hiển thị một mục todo, với khả năng kéo thả, đánh dấu hoàn thành, và xóa.
+TodoForm: Form để thêm todo mới.
 
-### `npm run build`
+4. Kéo thả với SortableJS
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Sử dụng SortableJS để triển khai chức năng kéo thả.
+Mỗi item có một "handle" để người dùng có thể kéo thả.
+Sự kiện onEnd được sử dụng để cập nhật thứ tự và gửi lên server.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Lưu ý khi triển khai
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Cấu hình MockAPI: Đảm bảo cấu hình đúng các endpoint và schema của data.
+Xử lý lỗi: Ứng dụng đã có cơ chế xử lý lỗi cơ bản, nhưng bạn có thể mở rộng để hiển thị thông báo lỗi chi tiết hơn.
+Hiệu suất: Với danh sách lớn, bạn có thể cần phân trang hoặc tải theo nhóm.
+Lưu trữ cục bộ: Bạn có thể thêm tính năng lưu trữ cục bộ (localStorage) để hoạt động offline.
 
-### `npm run eject`
+Bạn có thể mở rộng ứng dụng với các tính năng khác như:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Tìm kiếm và lọc todos
+Phân loại theo nhóm
+Đặt hạn chót cho công việc
+Đồng bộ hóa offline
