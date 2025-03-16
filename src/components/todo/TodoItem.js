@@ -1,7 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 const TodoItem = ({ todo, onToggle, onDelete }) => {
+    const [showDescription, setShowDescription] = useState(false);
+
     // Render badge cho priority
     const renderPriorityBadge = (priority) => {
         let colorClass = '';
@@ -66,12 +69,37 @@ const TodoItem = ({ todo, onToggle, onDelete }) => {
                 </div>
 
                 <div className="flex-1">
-                    <Link
-                        to={`/todo/${todo.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium block mb-2"
-                    >
-                        {todo.title}
-                    </Link>
+                    <div className="flex justify-between items-center mb-2">
+                        <Link
+                            to={`/todo/${todo.id}`}
+                            className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                            {todo.title}
+                        </Link>
+
+                        {todo.description && (
+                            <button
+                                onClick={() => setShowDescription(!showDescription)}
+                                className="text-gray-500 hover:text-gray-700 ml-2"
+                                title={showDescription ? "Ẩn mô tả" : "Hiện mô tả"}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    {showDescription ? (
+                                        <path d="M18 15l-6-6-6 6" />
+                                    ) : (
+                                        <path d="M6 9l6 6 6-6" />
+                                    )}
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Hiển thị mô tả khi showDescription = true */}
+                    {showDescription && todo.description && (
+                        <div className="bg-gray-50 p-2 mb-2 rounded text-sm text-gray-700 border-l-2 border-blue-400">
+                            {todo.description}
+                        </div>
+                    )}
 
                     {/* Thông tin hiển thị ngang hàng */}
                     <div className="grid grid-cols-3 gap-2 mb-2">

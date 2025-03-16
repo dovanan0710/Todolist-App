@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 const TodoForm = ({ onAddTodo }) => {
     const [formData, setFormData] = useState({
         title: '',
+        description: '', // Thêm trường mô tả
         type: 'Việc nhà',
         priority: 'Bình thường',
         status: 'Chưa làm',
@@ -24,6 +25,7 @@ const TodoForm = ({ onAddTodo }) => {
         if (formData.title.trim()) {
             onAddTodo({
                 ...formData,
+                description: formData.description.trim(), // Xử lý mô tả
                 title: formData.title.trim(),
                 completed: formData.status === 'Đã làm'
             });
@@ -55,6 +57,20 @@ const TodoForm = ({ onAddTodo }) => {
                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
+                </div>
+
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mô tả công việc
+                    </label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows="3"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Mô tả chi tiết về công việc này..."
+                    ></textarea>
                 </div>
 
                 <div>
