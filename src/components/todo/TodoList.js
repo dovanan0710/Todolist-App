@@ -14,6 +14,9 @@ const TodoList = () => {
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
 
+    // Tìm kiếm và lọc
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     // Phân trang
     const [currentPage, setCurrentPage] = useState(1);
@@ -35,8 +38,10 @@ const TodoList = () => {
     useEffect(() => {
         // Đăng ký các sự kiện từ API Service
         const loadedSubscription = pubsub.subscribe('TODOS_LOADED', (data) => {
-            setTodos(data);
-            setTotalPages(Math.ceil(data.length / itemsPerPage));
+            // Sắp xếp dữ liệu trước khi cập nhật state
+            const sortedData = [...data].sort((a, b) => a.order - b.order);
+            setTodos(sortedData);
+            setTotalPages(Math.ceil(sortedData.length / itemsPerPage));
             setLoading(false);
         });
 
@@ -134,13 +139,32 @@ const TodoList = () => {
                 onEnd: handleDragEnd
             });
         }
-    }, [todos, currentPage, itemsPerPage]);
+    }, [todos, currentPage, itemsPerPage, searchTerm, statusFilter]);
+
+    // Lọc todos dựa trên tìm kiếm và bộ lọc trạng thái
+    const getFilteredTodos = () => {
+        return todos.filter(todo => {
+            // Lọc theo tìm kiếm
+            const matchesSearch = todo.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+            // Lọc theo trạng thái
+            let matchesStatus = true;
+            if (statusFilter === 'active') {
+                matchesStatus = todo.status === 'Chưa làm';
+            } else if (statusFilter === 'completed') {
+                matchesStatus = todo.status === 'Đã làm';
+            }
+
+            return matchesSearch && matchesStatus;
+        });
+    };
 
     // Lấy các todos cho trang hiện tại
     const getCurrentPageTodos = () => {
+        const filteredTodos = getFilteredTodos();
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
-        return todos.slice(startIndex, endIndex);
+        return filteredTodos.slice(startIndex, endIndex);
     };
 
     // Tải danh sách todos
@@ -149,6 +173,87 @@ const TodoList = () => {
         await todoService.getTodos();
     };
 
+    // Sắp xếp todos theo thứ tự khi nhận được từ API
+    useEffect(() => {
+        const loadedSubscription = pubsub.subscribe('TODOS_LOADED', (data) => {
+            // Sắp xếp dữ liệu trước khi cập nhật state
+            const sortedData = [...data].sort((a, b) => a.order - b.order);
+            setTodos(sortedData);
+            setTotalPages(Math.ceil(sortedData.length / itemsPerPage));
+            setLoading(false);
+        });
+
+        return () => {
+            loadedSubscription.unsubscribe();
+        };
+    }, [itemsPerPage]);
+
+    // Xử lý thay đổi trong tìm kiếm
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
+    };
+
+    // Xử lý thay đổi bộ lọc trạng thái
+    const handleStatusFilterChange = (status) => {
+        setStatusFilter(status);
+        setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi bộ lọc
+    };
+
+    // Xử lý khi kéo thả kết thúc
+    // const handleDragEnd = (event) => {
+    //     const { oldIndex, newIndex } = event;
+    //     if (oldIndex === newIndex) return;
+
+    //     // Tính toán index thực trong mảng todos gốc
+    //     const startIndex = (currentPage - 1) * itemsPerPage;
+    //     const realOldIndex = startIndex + oldIndex;
+    //     const realNewIndex = startIndex + newIndex;
+
+    //     // Tạo bản sao mới của mảng todos
+    //     const newTodos = [...todos];
+    //     // Di chuyển item trong mảng
+    //     const [movedItem] = newTodos.splice(realOldIndex, 1);
+    //     newTodos.splice(realNewIndex, 0, movedItem);
+
+    //     // Cập nhật thứ tự cho mỗi item trong mảng
+    //     const updatedTodos = newTodos.map((todo, index) => ({
+    //         ...todo,
+    //         order: index // Cập nhật thuộc tính order cho mỗi todo
+    //     }));
+
+    //     // Cập nhật state
+    //     setTodos(updatedTodos);
+
+    //     // Cập nhật thứ tự lên server
+    //     todoService.updateOrder(updatedTodos).then(() => {
+    //         // Đảm bảo cập nhật thành công
+    //         console.log('Thứ tự đã được cập nhật trên server');
+
+    //         // Thông báo cho người dùng
+    //         setNotification({
+    //             show: true,
+    //             message: 'Đã cập nhật thứ tự công việc thành công',
+    //             type: 'success',
+    //             todoTitle: ''
+    //         });
+    //     }).catch(error => {
+    //         console.error('Lỗi khi cập nhật thứ tự:', error);
+    //         // Thêm xử lý lỗi ở đây nếu cần
+    //         setError('Không thể cập nhật thứ tự các công việc. Vui lòng thử lại sau.');
+
+    //         // Thông báo cho người dùng về lỗi
+    //         setNotification({
+    //             show: true,
+    //             message: 'Không thể cập nhật thứ tự công việc',
+    //             type: 'error',
+    //             todoTitle: ''
+    //         });
+
+    //         // Tải lại dữ liệu từ server trong trường hợp lỗi
+    //         loadTodos();
+    //     });
+    // };
     // Xử lý khi kéo thả kết thúc
     const handleDragEnd = (event) => {
         const { oldIndex, newIndex } = event;
@@ -171,23 +276,35 @@ const TodoList = () => {
             order: index // Cập nhật thuộc tính order cho mỗi todo
         }));
 
-        // Cập nhật state
-        setTodos(updatedTodos);
-
         // Cập nhật thứ tự lên server
-        todoService.updateOrder(updatedTodos).then(() => {
-            // Đảm bảo cập nhật thành công
-            console.log('Thứ tự đã được cập nhật trên server');
-        }).catch(error => {
-            console.error('Lỗi khi cập nhật thứ tự:', error);
-            // Thêm xử lý lỗi ở đây nếu cần
-            setError('Không thể cập nhật thứ tự các công việc. Vui lòng thử lại sau.');
+        todoService.updateOrder(updatedTodos)
+            .then(() => {
+                // Tải lại danh sách todos để đảm bảo đúng thứ tự
+                loadTodos();
 
-            // Tải lại dữ liệu từ server trong trường hợp lỗi
-            loadTodos();
-        });
+                // Thông báo cho người dùng
+                setNotification({
+                    show: true,
+                    message: 'Đã cập nhật thứ tự công việc thành công',
+                    type: 'success',
+                    todoTitle: ''
+                });
+            })
+            .catch(error => {
+                console.error('Lỗi khi cập nhật thứ tự:', error);
+
+                // Thông báo lỗi
+                setNotification({
+                    show: true,
+                    message: 'Không thể cập nhật thứ tự công việc',
+                    type: 'error',
+                    todoTitle: ''
+                });
+
+                // Tải lại dữ liệu từ server trong trường hợp lỗi
+                loadTodos();
+            });
     };
-
     // Thêm todo mới
     const handleAddTodo = (todoData) => {
         const newTodo = {
@@ -214,7 +331,6 @@ const TodoList = () => {
         if (window.confirm('Bạn có chắc chắn muốn xóa công việc này?')) {
             todoService.deleteTodo(id);
         }
-
     };
 
     // Xử lý thay đổi trang
@@ -226,9 +342,20 @@ const TodoList = () => {
     const handleItemsPerPageChange = (e) => {
         const value = parseInt(e.target.value);
         setItemsPerPage(value);
-        setTotalPages(Math.ceil(todos.length / value));
+        const filteredTodos = getFilteredTodos();
+        setTotalPages(Math.ceil(filteredTodos.length / value));
         setCurrentPage(1); // Reset về trang đầu tiên
     };
+
+    // Cập nhật tổng số trang khi thay đổi bộ lọc hoặc tìm kiếm
+    useEffect(() => {
+        const filteredTodos = getFilteredTodos();
+        setTotalPages(Math.ceil(filteredTodos.length / itemsPerPage));
+        // Nếu trang hiện tại vượt quá tổng số trang mới, quay lại trang đầu tiên
+        if (currentPage > Math.ceil(filteredTodos.length / itemsPerPage)) {
+            setCurrentPage(1);
+        }
+    }, [todos, searchTerm, statusFilter, itemsPerPage]);
 
     // Tạo mảng các số trang để hiển thị
     const getPageNumbers = () => {
@@ -280,6 +407,7 @@ const TodoList = () => {
     }
 
     const currentTodos = getCurrentPageTodos();
+    const filteredTodos = getFilteredTodos();
 
     return (
         <div className="max-w-full px-4 py-2">
@@ -308,8 +436,7 @@ const TodoList = () => {
                 </div>
             )}
 
-            <div className="mb-4 flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Các công việc</h2>
+            <div className="mb-4 flex justify-end items-center">
 
                 {/* Nút thêm mới */}
                 <button
@@ -322,6 +449,42 @@ const TodoList = () => {
                     </svg>
                     Thêm mới
                 </button>
+            </div>
+
+            {/* Thanh tìm kiếm và bộ lọc */}
+            <div className="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+                <div className="relative flex-grow">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Tìm kiếm công việc..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+
+                <div className="relative">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => handleStatusFilterChange(e.target.value)}
+                        className="pl-4 pr-8 py-2 bg-white border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <option value="all">Tất cả</option>
+                        <option value="active">Đang làm</option>
+                        <option value="completed">Hoàn thành</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             {todos.length === 0 ? (
@@ -339,6 +502,23 @@ const TodoList = () => {
                         className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
                     >
                         Thêm công việc mới
+                    </button>
+                </div>
+            ) : filteredTodos.length === 0 ? (
+                <div className="bg-white rounded-lg shadow p-8 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-gray-400 mb-4">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <p className="text-gray-500 mb-4">Không tìm thấy công việc nào phù hợp.</p>
+                    <button
+                        onClick={() => {
+                            setSearchTerm('');
+                            setStatusFilter('all');
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                        Xem tất cả công việc
                     </button>
                 </div>
             ) : (
@@ -418,7 +598,13 @@ const TodoList = () => {
                         </div>
 
                         <div className="mt-2 md:mt-0 text-sm text-gray-500">
-                            Hiển thị {Math.min((currentPage - 1) * itemsPerPage + 1, todos.length)} - {Math.min(currentPage * itemsPerPage, todos.length)} của {todos.length} công việc
+                            {filteredTodos.length > 0 ? (
+                                <>
+                                    Hiển thị {Math.min((currentPage - 1) * itemsPerPage + 1, filteredTodos.length)} - {Math.min(currentPage * itemsPerPage, filteredTodos.length)} của {filteredTodos.length} công việc
+                                </>
+                            ) : (
+                                <>Không có công việc nào phù hợp</>
+                            )}
                         </div>
                     </div>
                 </div>

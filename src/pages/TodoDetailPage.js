@@ -10,6 +10,7 @@ const TodoDetailPage = () => {
     const [error, setError] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
+        description: '',
         type: 'Việc nhà',
         priority: 'Bình thường',
         status: 'Chưa làm',
@@ -33,6 +34,7 @@ const TodoDetailPage = () => {
 
                 setFormData({
                     title: todoData.title || '',
+                    description: todoData.description || '',
                     type: todoData.type || 'Việc nhà',
                     priority: todoData.priority || 'Bình thường',
                     status: todoData.status || 'Chưa làm',
@@ -130,6 +132,18 @@ const TodoDetailPage = () => {
                         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
                     />
+                </div>
+                {/* Thêm trường mô tả công việc */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả công việc:</label>
+                    <textarea
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        rows="4"
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nhập mô tả chi tiết về công việc..."
+                    ></textarea>
                 </div>
 
                 <div className="mb-4">
