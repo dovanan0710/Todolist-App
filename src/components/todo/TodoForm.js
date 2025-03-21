@@ -89,7 +89,6 @@ const TodoForm = ({ onAddTodo }) => {
                         <option value="Thoải mái">Thấp</option>
                     </select>
                 </div>
-
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Trạng thái

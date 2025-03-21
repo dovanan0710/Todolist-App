@@ -11,7 +11,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.3.0",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "sortablejs": "^1.15.6",
     "todolist-app": "file:",
     "web-vitals": "^2.1.4"
@@ -44,5 +44,9 @@
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17"
-  }
+  },
+  "description": "Trước khi triển khai ứng dụng, bạn cần cấu hình MockAPI cho dự án của mình:",
+  "main": "postcss.config.js",
+  "author": "",
+  "license": "ISC"
 }

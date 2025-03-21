@@ -49,6 +49,9 @@ const MainLayout = ({ children }) => {
                     <div className="text-left text-gray-500 text-sm">
                         Liên hệ : an07102003@gmail.com
                     </div>
+                    <div className="text-left text-gray-500 text-sm">
+                        Hotline: 0986916803
+                    </div>
 
                 </div>
             </footer>
