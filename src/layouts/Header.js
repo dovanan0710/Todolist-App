@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import NotificationBell from '../components/common/NotificationBell';
 import todoService from '../services/apiService';
-import pubsub from '../services/pubsub'; // Thêm import PubSub
+import pubsub from '../services/pubsub';
 
 const Header = () => {
     const [upcomingTasks, setUpcomingTasks] = useState([]);
@@ -30,7 +30,7 @@ const Header = () => {
 
             setUpcomingTasks(upcoming);
         } catch (error) {
-            console.error(" Lỗi khi lấy danh sách công việc:", error);
+            console.error("Lỗi khi lấy danh sách công việc:", error);
         }
     };
 
@@ -41,6 +41,7 @@ const Header = () => {
         // Đăng ký sự kiện từ PubSub để refresh danh sách
         const todoUpdatedSubscription = pubsub.subscribe('TODO_UPDATED', fetchUpcomingTasks);
         const todoDeletedSubscription = pubsub.subscribe('TODO_DELETED', fetchUpcomingTasks);
+        const todoAddedSubscription = pubsub.subscribe('TODO_ADDED', fetchUpcomingTasks);
 
         // Thiết lập interval để cập nhật định kỳ
         const intervalId = setInterval(fetchUpcomingTasks, 60000);
@@ -50,6 +51,7 @@ const Header = () => {
             clearInterval(intervalId);
             todoUpdatedSubscription.unsubscribe();
             todoDeletedSubscription.unsubscribe();
+            todoAddedSubscription.unsubscribe();
         };
     }, []);
 
@@ -60,7 +62,7 @@ const Header = () => {
     };
 
     return (
-        <header className="bg-white shadow-md sticky top-0 z-10">
+        <header className="bg-white shadow-md sticky top-0 z-40">
             <div className="container mx-auto px-4 py-3">
                 <div className="flex justify-between items-center">
                     <Link to="/" className="flex items-center text-lg font-bold text-blue-600">
@@ -86,8 +88,10 @@ const Header = () => {
                     </Link>
 
                     <div className="flex items-center">
-                        {/* Component thông báo */}
-                        <NotificationBell upcomingTasks={upcomingTasks} />
+                        {/* Component thông báo - Cần đảm bảo z-index cao hơn phần còn lại của trang */}
+                        <div className="relative mr-2">
+                            <NotificationBell upcomingTasks={upcomingTasks} />
+                        </div>
 
                         <nav className="flex space-x-2">
                             <Link
