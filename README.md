@@ -49,3 +49,5 @@ Tìm kiếm và lọc todos
 Phân loại theo nhóm
 Đặt hạn chót cho công việc
 Đồng bộ hóa offline
+
+Thêm một nút để dẫn đến trang quản lý ở phần head của trang chủchủ
