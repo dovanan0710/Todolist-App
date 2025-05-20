@@ -66,9 +66,23 @@ const TodoItem = ({ todo, onToggle, onDelete }) => {
     };
 
     // Định dạng ngày giờ
+    // const formatDateTime = (dateTimeStr) => {
+    //     if (!dateTimeStr) return 'Chưa đặt';
+    //     const date = new Date(dateTimeStr);
+    //     return new Intl.DateTimeFormat('vi-VN', {
+    //         year: 'numeric',
+    //         month: '2-digit',
+    //         day: '2-digit',
+    //         hour: '2-digit',
+    //         minute: '2-digit'
+    //     }).format(date);
+    // };
     const formatDateTime = (dateTimeStr) => {
         if (!dateTimeStr) return 'Chưa đặt';
+
         const date = new Date(dateTimeStr);
+        if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+
         return new Intl.DateTimeFormat('vi-VN', {
             year: 'numeric',
             month: '2-digit',
@@ -77,6 +91,7 @@ const TodoItem = ({ todo, onToggle, onDelete }) => {
             minute: '2-digit'
         }).format(date);
     };
+
 
     // Kiểm tra xem task đã quá hạn chưa
     const isOverdue = (endTimeStr) => {
@@ -115,8 +130,8 @@ const TodoItem = ({ todo, onToggle, onDelete }) => {
                             <Link
                                 to={`/todo/${todo.id}`}
                                 className={`text-lg hover:text-blue-700 font-medium ${todo.status === 'Đã làm'
-                                        ? 'text-gray-500 line-through'
-                                        : 'text-gray-800'
+                                    ? 'text-gray-500 line-through'
+                                    : 'text-gray-800'
                                     }`}
                             >
                                 {todo.title}

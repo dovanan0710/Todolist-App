@@ -87,6 +87,7 @@ const TodoForm = ({ onAddTodo }) => {
                         <option value="Việc trên trường">Việc trên trường</option>
                         <option value="Công việc">Công việc</option>
                         <option value="Cá nhân">Cá nhân</option>
+                        <option value="Cá nhân">Khác</option>
                     </select>
                 </div>
 
